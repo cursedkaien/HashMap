@@ -1,4 +1,4 @@
-class HashMap {
+export default class HashMap {
   constructor(loadFactor = 0.75, capacity = 16) {
     this.loadFactor = loadFactor;
     this.capacity = capacity;
@@ -10,32 +10,45 @@ class HashMap {
 
     const primeNumber = 31;
     for (let i = 0; i < key.length; i++) {
-      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % this.capacity;
+      hashCode = primeNumber * hashCode + key.charCodeAt(i);
     }
 
-    return hashCode;
+    return hashCode % this.capacity;
   }
 
   set(key, value) {
     const index = this.hash(key);
-    const bucket = this.bucket[this.bucket];
+    const bucket = this.bucket[index];
 
     for (let i = 0; i < bucket.length; i++) {
       if (bucket[i][0] === key) {
         bucket[i][1] = value;
+        return;
       }
     }
 
-    bucket.push([key, value]);
+    if ((this.length() + 1) / this.capacity > this.loadFactor) {
+      const currentEntries = this.entries();
+      this.capacity *= 2;
+      this.bucket = Array.from({ length: this.capacity }, () => []);
+
+      for (const [k, v] of currentEntries) {
+        const newIndex = this.hash(k);
+        this.bucket[newIndex].push([k, v]);
+      }
+    }
+
+    const finalIndex = this.hash(key);
+    this.bucket[finalIndex].push([key, value]);
   }
 
   get(key) {
     const index = this.hash(key);
-    const bucket = this.bucket[this.bucket];
+    const bucket = this.bucket[index];
 
     for (let i = 0; i < bucket.length; i++) {
       if (bucket[i][0] === key) {
-        bucket[i][1] = value;
+        return bucket[i][1];
       }
     }
 
@@ -48,16 +61,15 @@ class HashMap {
 
   remove(key) {
     const index = this.hash(key);
-    const bucket = this.bucket[this.bucket];
+    const bucket = this.bucket[index];
 
     for (let i = 0; i < bucket.length; i++) {
       if (bucket[i][0] === key) {
         bucket.splice(i, 1);
         return true;
       }
-
-      return false;
     }
+    return false;
   }
 
   length() {
@@ -78,8 +90,8 @@ class HashMap {
       for (const [key] of bucket) {
         keysArray.push(key);
       }
-      return keysArray;
     }
+    return keysArray;
   }
 
   values() {
@@ -88,8 +100,8 @@ class HashMap {
       for (const [, value] of bucket) {
         valuesArray.push(value);
       }
-      return valuesArray;
     }
+    return valuesArray;
   }
 
   entries() {
@@ -98,7 +110,7 @@ class HashMap {
       for (const pair of bucket) {
         entriesArray.push(pair);
       }
-      return entriesArray;
     }
+    return entriesArray;
   }
 }
